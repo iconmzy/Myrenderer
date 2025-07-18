@@ -45,6 +45,12 @@
     <ClCompile Include="perspectiveProjection.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="geometry.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main_todolist.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="drawLine.h">
@@ -56,10 +62,13 @@
     <ClInclude Include="triangleRasterization.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="geometry.h">
+    <ClInclude Include="geometry_useable_v0718.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="model.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="geometry.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include "model.h"
+#include <iostream>
 
 Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_() {
 	std::ifstream in;

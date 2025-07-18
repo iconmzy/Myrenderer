@@ -26,7 +26,7 @@ Model* model = NULL;
 //定义三維數值
 const int width = 500;
 const int height = 500;
-const int deeth = 300;
+const int depth = 300;
 
 
 
@@ -34,8 +34,22 @@ const int deeth = 300;
 
 //定义MVP变换矩阵
 //Matrix ModelView[];
-//Matrix ViewPort[];
+
+//Matrix ViewPort, mapping 标准立方体空间(-1,1)^3 into 定义的screen space  [0,width]x[0,height]x[0,depth]
+Matrix viewport(int x, int y, int w, int h) {
+	Matrix m = Matrix::identity(4);
+	m[0][3] = x + w / 2.f;
+	m[1][3] = y + h / 2.f;
+	m[2][3] = depth / 2.f;
+
+	m[0][0] = w / 2.f;
+	m[1][1] = h / 2.f;
+	m[2][2] = depth / 2.f;
+	return m;
+}
 //Matrix Prejection = Matrix::identity(4);
+
+
 
 
 
@@ -100,7 +114,7 @@ int v0716_drawFullFace_main(int argc, char** argv) {
 			world_coords[j] = v;
 		}
 		//定义法向量n，任意两边叉乘一定会得到垂直平面的向量，然后单位化
-		Vec3f n = cross((world_coords[2] - world_coords[0]), (world_coords[1] - world_coords[0]));
+		Vec3f n = (world_coords[2] - world_coords[0])^(world_coords[1] - world_coords[0]);
 		n.normalize();
 		//简单计算的点乘代表漫反射是不是有光
 		float intensity = n * light_dir;
@@ -152,7 +166,7 @@ int main(int argc, char** argv) {
 	//init zbuffer
 	for (int i = width * height; i--; zbuffer[i] = -numeric_limits<float>::max());
 
-	TGAImage image(width, height, TGAImage::RGBA);
+	TGAImage image(width, height, TGAImage::RGB);
 	//定义光的方向沿着-z
 	Vec3f light_dir(0, 0, -1);
 	
@@ -174,7 +188,7 @@ int main(int argc, char** argv) {
 			world_coords[j] = v;
 		}
 		//定义法向量n，任意两边叉乘一定会得到垂直平面的向量，然后单位化
-		Vec3f n = cross((world_coords[2] - world_coords[0]), (world_coords[1] - world_coords[0]));
+		Vec3f n = (world_coords[2] - world_coords[0]) ^ (world_coords[1] - world_coords[0]);
 		n.normalize();
 		//简单计算的点乘代表漫反射
 		float intensity = n * light_dir;
