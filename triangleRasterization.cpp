@@ -338,7 +338,7 @@ int drawFullTriangle_main() {
 
 
 
-void triangle(Model* model, int iface, Vec3f* tri, float* zbuffer, TGAImage& image, TGAColor color) {
+void triangle_mode(Model* model, int iface, Vec3f* tri, float* zbuffer, TGAImage& image, TGAColor color) {
 	// 计算包围盒
 	Vec2f bboxmin(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
 	Vec2f bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());

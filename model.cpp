@@ -1,10 +1,11 @@
+#include <iostream>
+#include <string>
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include "model.h"
-#include <iostream>
 
-Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_() {
+Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_() {
 	std::ifstream in;
 	in.open(filename, std::ifstream::in);
 	if (in.fail()) return;
@@ -84,5 +85,11 @@ TGAColor Model::diffuse(Vec2i uv) {
 Vec2i Model::uv(int iface, int nvert) {
 	int idx = faces_[iface][nvert][1];
 	return Vec2i(uv_[idx].x * diffusemap_.get_width(), uv_[idx].y * diffusemap_.get_height());
-	//return Vec2i(1, 1);
 }
+
+Vec3f Model::norm(int iface, int nvert) {
+	int idx = faces_[iface][nvert][2];
+	return norms_[idx].normalize();
+}
+
+

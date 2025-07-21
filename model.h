@@ -15,7 +15,7 @@ private:
 public:
 
 	std::vector<Vec3f> verts_; // 存放所有的顶点坐标
-	std::vector<std::vector<Vec3i> > faces_; // vertex/normal/texcoord的索引
+	std::vector<std::vector<Vec3i> > faces_; // vertex/uv/normal
 	std::vector<Vec2f> uv_;//存放所有的纹理坐标
 	std::vector<Vec3f> norms_;//法线
 	TGAImage diffusemap_;//存放读取的贴图
@@ -24,6 +24,7 @@ public:
 	~Model();
 	int nverts(); //顶点总数
 	int nfaces(); // 面数
+	Vec3f norm(int iface, int nvert);
 	Vec3f vert(int i); //获取索引为i的顶点
 	Vec2i uv(int iface, int nvert);//获取面数为iface，面中第nvert个的uv
 	TGAColor diffuse(Vec2i uv); //从漫反射贴图中取出uv对应的颜色
@@ -31,3 +32,8 @@ public:
 };
 
 #endif //__MODEL_H__
+
+
+
+
+
