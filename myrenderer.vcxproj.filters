@@ -51,6 +51,12 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="my_gl.h">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="my_gl.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="drawLine.h">

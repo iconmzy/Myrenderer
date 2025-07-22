@@ -1,100 +1,68 @@
 #include <vector>
 #include <iostream>
-#include <cmath>
+
 #include <limits>
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
+#include "my_gl.h"
+
+
+//宏定义边界限制
+#define CLAMP(t) ((t>1.f)?1.f:((t<0.f)?0.f:t))
+
+
 
 const int width = 600;
 const int height = 600;
 const int depth = 255;
 
 Model* model = NULL;
-
-Vec3f light_dir = Vec3f(0, -1, -1).normalize();
-//camera位置
-Vec3f camera(-1, -1, 2);
-
-//原点/焦点？
-Vec3f center(0, 0, 0);
-Vec3f up(0, 1, 0);
+//camera location
+Vec3f light_dir(1, 1, 1);
+Vec3f       camera(0, -1, 3);
+Vec3f    center(0, 0, 0);
+Vec3f        up(0, 1, 0);
 
 
 
 
-Matrix ModelView;
-Matrix ViewPort;
-Matrix Projection;
+struct FlatShader: public IShader{
+	//NXN矩阵记录转换坐标的点
+	mat<3, 3, float> varing_tri;  
+	/*
+	每列代表一个顶点 (共3个顶点)
+	每行代表一个坐标分量(x, y, z)
+
+	  varying_tri = [ x0, x1, x2 ]  ← 第0行：所有顶点的x分量
+					[ y0, y1, y2 ]  ← 第1行：所有顶点的y分量
+					[ z0, z1, z2 ]  ← 第2行：所有顶点的z分量
+	*/
+	virtual Vec4f vertex(int iface, int nthvert) {
+		////读取第 iface 个面/三角形的第nthvert个顶点改成齐次坐标转化为齐次坐标系
+		Vec4f gl_vertex = embed<4>(model->vert(iface, nthvert));
+		gl_vertex = Projection * ModelView * gl_vertex;
+		//经过投影变化的顶点坐标/z分量（透视除法）后的xzy分量添加到varing_tri的不同列
+		varing_tri.set_col(nthvert, proj<3>(gl_vertex / gl_vertex[3]));
+		gl_vertex = ViewPort * gl_vertex;
+		return gl_vertex;
 
 
-
-
-
-
-
-Matrix viewtrans(Vec3f camera, Vec3f center, Vec3f up) {
-	//将任意的摄像头朝向转向以y轴向上然后看向z轴的标准坐标系，然后对物体做逆变换
-	//两个点作差就得到要转到z的向量lookatdirection == camera-->center，单位化
-	Vec3f z = (camera - center).normalize();
-	//右手法则，向上的方向×lookatdirection得到x轴方向
-	Vec3f x = cross(up,z).normalize();
-	//同理，最后算y，这里GitHub的案例用的是z^x,可能是最后会经过水平翻转
-	Vec3f y = cross(z,x).normalize();
-	//坐标系重合需要经过旋转和平移，把各自的分量加到齐次矩阵里
-	//mat定义的matrix默认是4维，构建一个单位矩阵
-	Matrix viewTrans = Matrix::identity();
-	for (int i = 0;i < 3; ++i){
-		viewTrans[0][i] = x[i];
-		viewTrans[1][i] = y[i];
-		viewTrans[2][i] = z[i];
-		//第四列是位移
-		viewTrans[i][3] = -center[i];
 	}
-	return viewTrans;
-}
-
-Matrix viewport(int x, int y, int w, int h) {
-	Matrix m = Matrix::identity();
-	m[0][3] = x + w / 2.f;
-	m[1][3] = y + h / 2.f;
-	m[2][3] = depth / 2.f;
-
-	m[0][0] = w / 2.f;
-	m[1][1] = h / 2.f;
-	m[2][2] = depth / 2.f;
-	return m;
-}
-
-Matrix lookat(Vec3f eye, Vec3f center, Vec3f up) {
-	Vec3f z = (eye - center).normalize();
-	Vec3f x = cross(up, z).normalize();
-	Vec3f y = cross(z , x).normalize();
-	Matrix res = Matrix::identity();
-	for (int i = 0; i < 3; i++) {
-		res[0][i] = x[i];
-		res[1][i] = y[i];
-		res[2][i] = z[i];
-		res[i][3] = -center[i];
+	virtual bool fragment(Vec3f bar, TGAColor& color) {
+		//法线 是任意两边的叉乘
+		Vec3f n = cross(varing_tri.col(1) - varing_tri.col(0), varing_tri.col(2) - varing_tri.col(0)).normalize();
+		//点乘判断光照是否平行三角形
+		float intensity = CLAMP(n * light_dir);
+		color = TGAColor(255, 255, 255) * intensity;
+		return false;
 	}
-	return res;
-}
+};
 
 
-Vec3f barycentric(Vec2f A, Vec2f B, Vec2f C, Vec2f P) {
-	Vec3f s[2];
-	for (int i = 2; i--; ) {
-		s[i][0] = C[i] - A[i];
-		s[i][1] = B[i] - A[i];
-		s[i][2] = A[i] - P[i];
-	}
-	//[u,v,1]和[AB,AC,PA]对应的x和y向量都垂直，所以叉乘
-	Vec3f u = cross(s[0], s[1]);
-	if (std::abs(u[2]) > 1e-2) 
-		//若1-u-v，u，v全为大于0的数，表示点在三角形内部
-		return Vec3f(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
-	return Vec3f(-1, 1, 1); // in this case generate negative coordinates, it will be thrown away by the rasterizator
-}
+
+
+
 
 
 
@@ -131,68 +99,7 @@ Vec3f barycentric(Vec2f A, Vec2f B, Vec2f C, Vec2f P) {
 // 	}
 // }
 
-void triangle_box(Vec4f* tri,  TGAImage& image, TGAImage & zbuffer, TGAColor color) {
-	// 计算包围盒
-	Vec2f bboxmin(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
-	Vec2f bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
-	Vec2f clamp(image.get_width() - 1, image.get_height() - 1);
 
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 2; j++) {
-			// x/w y/w
-			bboxmin[j] = std::min(bboxmin[j], tri[i][j] / tri[i][3]);
-			bboxmax[j] = std::max(bboxmax[j], tri[i][j] / tri[i][3]);
-		}
-	}
-
-// 	// 获取三个顶点的UV坐标（归一化）
-// 	Vec2f uvs[3];
-// 	for (int i = 0; i < 3; i++) {
-// 		int uv_idx = model->faces_[iface][i][1];  // 直接访问faces_成员
-// 		uvs[i] = model->uv_[uv_idx];  // 获取归一化UV坐标
-// 	}
-
-	Vec2i P;
-	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x+=1.0f) {
-		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y+=1.0f) {
-
-
-			//这里的proj是一个降维操作的模板
-			Vec3f bc_screen = barycentric(proj<2>(tri[0] / tri[0][3]), proj<2>(tri[1] / tri[1][3]),
-				proj<2>(tri[2] / tri[2][3]), P);
-			
-			//对z和w的单独差值是为了透视校正？
-			float z = tri[0][2] * bc_screen.x + tri[1][2] * bc_screen.y + tri[2][2] * bc_screen.z;
-			float w = tri[0][3] * bc_screen.x + tri[1][3] * bc_screen.y + tri[2][3] * bc_screen.z;
-			
-
-			// 透视校正 + 量化到 单通道灰度0~255 
-			int frag_depth = std::max(0, std::min(255, int(z / w + 0.5)));
-			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0 || zbuffer.get(P.x, P.y)[0] > frag_depth) continue;
-
-
-			
-			image.set(P.x, P.y, color);
-			//根据深度渲染zbuffer的亮度
-			zbuffer.set(P.x, P.y, TGAColor(frag_depth));
-
-				
-				
-
-			// 插值UV坐标（归一化）
-// 			Vec2f uv_pixel;
-// 			for (int i = 0; i < 3; i++) {
-// 				uv_pixel = uv_pixel + uvs[i] * bc_screen[i];
-// 			}
-// 
-// 			// 转换为纹理像素坐标
-// 			Vec2i uv_pixel_coords(
-// 				uv_pixel.x * model->diffusemap_.get_width(),
-// 				uv_pixel.y * model->diffusemap_.get_height()
-// 			);
-		}
-	}
-}
 
 
 
@@ -200,8 +107,6 @@ Vec4f world2screen(Vec3f v) {
 
 	Vec4f gl_vertex = embed<4>(v);
 	//把传入对象拉伸到n维，fill with 1
-	
-
 	return gl_vertex = ViewPort * Projection * ModelView * gl_vertex;
 	
 }
@@ -216,16 +121,13 @@ int main(int argc, char** argv) {
 	}
 	TGAImage image(width, height, TGAImage::RGB);
 	TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
-	//zbuffer = new float[width * height];
-	//for (int i = width * height; i--; zbuffer[i] = -std::numeric_limits<float>::max());
+	viewtrans(camera, center, up);
+	viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
+	projection(-1.f / (camera - center).norm());
+	light_dir.normalize();
+	FlatShader shader;
+	{ 
 
-
-	{ // draw the model
-		ModelView = viewtrans(camera, center, up);
-		
-		ViewPort = viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
-		Projection = Matrix::identity();
-		Projection[3][2] = -1.f / 3;
 
 // 		std::cerr << ModelView << std::endl;
 // 		std::cerr << Projection << std::endl;
@@ -236,29 +138,27 @@ int main(int argc, char** argv) {
 		
 		for (int i = 0; i < model->nfaces(); i++) {
 			std::vector<int> face = model->face(i);
-			//改成齐次坐标
+			
 			Vec4f screen_coords[3];
-			Vec3f world_coords[3];
 			
 			for (int j = 0; j < 3; j++) {
 				
-				world_coords[j] = model->vert(face[j]);;
-				screen_coords[j] = world2screen(world_coords[j]);
+				
+				screen_coords[j] = shader.vertex(i,j);
 			}
-			//叉乘算法线
-			Vec3f norm = cross(world_coords[2] - world_coords[0], world_coords[1] - world_coords[0]);
-			norm.normalize();
-			float intensity = light_dir * norm;
+			
+			
+			
 			//triangle_line(screen_coords[0], screen_coords[1], screen_coords[2], intensity[0], intensity[1], intensity[2], image,zbuffer);
-			if (intensity > 0){
-				triangle_box(screen_coords, image,zbuffer, TGAColor(intensity * 255, intensity * 255, intensity * 255, 255));
-			}
+			
+			triangle_box(screen_coords,shader, image,zbuffer);
+			
 			
 		}
 		image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-		image.write_tga_file("drawMVPAficaFace_withoutTexture.tga");
+		image.write_tga_file("flatshader_Draw_AficaFace_withoutTexture.tga");
 		zbuffer.flip_vertically();
-		zbuffer.write_tga_file("zbuffer.tga");
+		zbuffer.write_tga_file("flatshader_Draw_AficaFace_withoutTexture_zbuffer.tga");
 	}
 
 

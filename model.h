@@ -25,8 +25,9 @@ public:
 	int nverts(); //顶点总数
 	int nfaces(); // 面数
 	Vec3f norm(int iface, int nvert);
-	Vec3f vert(int i); //获取索引为i的顶点
-	Vec2i uv(int iface, int nvert);//获取面数为iface，面中第nvert个的uv
+	Vec3f normal(int iface, int nthvert);
+	Vec3f vert(int i,int nvert); //获取索引为i的顶点
+	Vec2f uv(int iface, int nvert);//获取面数为iface，面中第nvert个的uv
 	TGAColor diffuse(Vec2i uv); //从漫反射贴图中取出uv对应的颜色
 	std::vector<int> face(int idx); //根据面索引取出所有顶点坐标
 };
