@@ -117,6 +117,43 @@ struct GouraudShader_Texture :public IShader {
 };
 
 
+struct GouraudShader_Texture_DiffuseReflection :public IShader {
+	
+	mat<2, 3, float> varing_uv;
+	mat<4, 4, float> uniform_M;//Projection*ModelView
+	mat<4, 4, float> uniform_MIT; //Projection*ModelView 的逆运算
+	virtual Vec4f vertex(int iface, int nthvert) {
+		//映射uv坐标
+		varing_uv.set_col(nthvert, model->uv(iface, nthvert));
+		//varing_intensity[nthvert] = CLAMP(model->normal(iface, nthvert) * light_dir);//光照随着法线变化,这里不再计算
+
+		Vec4f gl_vertex = embed<4>(model->vert(iface, nthvert));
+
+		gl_vertex = ViewPort * Projection * ModelView * gl_vertex;
+
+		return gl_vertex;
+	}
+	virtual bool fragment(Vec3f bar, TGAColor& color) {
+		
+		Vec2f uv = varing_uv * bar;
+
+		
+		//从法线贴图读取切线空间法线，变换到视图空间（使用逆转置矩阵保持垂直性）在齐次坐标下的归一化表示
+		Vec3f n = proj<3>(uniform_MIT * embed<4>(model->normal(uv))).normalize();
+
+		//// 将世界空间光照方向变换到视图空间得到 齐次坐标下的light的归一化
+		Vec3f l = proj<3>(uniform_M * embed<4>(light_dir)).normalize();
+
+
+		//基于Lambert余弦定律计算漫反射强度
+		//n·l  ====》 | n || l | cosθ（已归一化===》 | n |= | l |= 1）。
+		float intensity = std::max(0.f,n*l);
+
+		color = model->diffuse(uv) * intensity;
+		return false;
+	}
+
+};
 
 
 
@@ -181,7 +218,12 @@ int main(int argc, char** argv) {
 	viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
 	projection(-1.f / (camera - center).norm());
 	light_dir.normalize();
-	GouraudShader_Texture shader;
+	GouraudShader_Texture_DiffuseReflection shader;
+
+	//合并的模型视图投影矩阵（MVP），用于顶点变换
+	shader.uniform_M = Projection * ModelView;
+	//MVP的逆转置矩阵，用于正确变换法线
+	shader.uniform_MIT = shader.uniform_M.invert_transpose();
 	//GouraudShader shader;
 	{ 
 
@@ -208,9 +250,9 @@ int main(int argc, char** argv) {
 			
 		}
 		image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-		image.write_tga_file("GouraudShader_Draw_AficaFace_withTexture.tga");
+		image.write_tga_file("GouraudShader_AficaFace_withDiffuseReflectionTexture.tga");
 		zbuffer.flip_vertically();
-		zbuffer.write_tga_file("zbuffer_GouraudShader_Draw_AficaFace_withTexture.tga");
+		zbuffer.write_tga_file("zbuffer_GouraudShader_AficaFace_withDiffuseReflectionTexture.tga");
 	}
 
 

@@ -141,7 +141,6 @@
   <ItemGroup>
     <ClInclude Include="drawLine.h" />
     <ClInclude Include="geometry.h" />
-    <ClInclude Include="geometry_useable_v0718.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="tgaimage.h" />
     <ClInclude Include="triangleRasterization.h" />

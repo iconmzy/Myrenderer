@@ -68,9 +68,6 @@
     <ClInclude Include="triangleRasterization.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="geometry_useable_v0718.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="model.h">
       <Filter>头文件</Filter>
     </ClInclude>
