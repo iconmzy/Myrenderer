@@ -4,7 +4,7 @@
 
 #include "model.h"
 
-Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_()
+Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_()
 {
 	std::ifstream in(filename, std::ifstream::in);
 	if (in.is_open()) {
@@ -47,6 +47,9 @@ Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_()
 
 	std::cerr << "# v#" << verts_.size() << " f# " << faces_.size() << " vt# " <<
 		uv_.size() << " vn# " << norms_.size() << std::endl;
+	//在构造函数中就把texture加载了
+	std::cout << "loading texture" << std::endl;
+	load_texture(filename, "_diffuse.tga", diffusemap_);
 }
 
 Model::~Model() {}
@@ -65,6 +68,22 @@ std::vector<int> Model::face(int idx) {
 	return face;
 }
 
+void Model::load_texture(std::string filename, const char* suffix, TGAImage& img) {
+	std::string textfile(filename);
+	size_t dot = textfile.find_last_of(".");
+	if (dot != std::string::npos) {
+		textfile = textfile.substr(0, dot) + std::string(suffix);
+		std::cout << "textfile file" << textfile << "loading " <<
+			(img.read_tga_file(textfile.c_str()) ? "ok" : "failed") << std::endl;
+		img.flip_vertically();
+	}
+}
+
+TGAColor Model::diffuse(Vec2f uvf) {
+	Vec2i uv(uvf[0] * diffusemap_.get_width(), uvf[1] * diffusemap_.get_height());
+	return diffusemap_.get(uv[0], uv[1]);
+}
+
 Vec3f Model::vert(int iface, int nthvert) {
 	return verts_[faces_[iface][nthvert][0]];
 }
@@ -76,18 +95,4 @@ Vec2f Model::uv(int iface, int nthvert) {
 Vec3f Model::normal(int iface, int nthvert) {
 	int idx = faces_[iface][nthvert][2];
 	return norms_[idx].normalize();
-}
-
-void Model::load_texture(std::string filename, const char* suffix, TGAImage& img) {
-	std::string texfile(filename);
-	size_t dot = texfile.find_last_of(".");
-	if (dot != std::string::npos) {
-		texfile = texfile.substr(0, dot) + std::string(suffix);
-		std::cerr << "texture file " << texfile << " loading " << (img.read_tga_file(texfile.c_str()) ? "ok" : "failed") << std::endl;
-		img.flip_vertically();
-	}
-}
-
-TGAColor Model::diffuse(Vec2i uv) {
-	return diffusemap_.get(uv.x, uv.y);
 }

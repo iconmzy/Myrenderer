@@ -74,24 +74,47 @@ struct GouraudShader :public IShader {
 		varing_intensity[nthvert] = CLAMP(model->normal(iface, nthvert) * light_dir);
 		return gl_vertex;
 	}
-// 	virtual bool fragment(Vec3f bar, TGAColor& color) {
-// 		float intensity = varing_intensity * bar;
-// 		color = TGAColor(255, 255, 255) * intensity;
-// 		return false;
-// 	}
-	virtual bool fragment(Vec3f bar, TGAColor& color) {
-		float intensity = varing_intensity * bar; //interpolate intensity for current Pixel
-		if (intensity > .85)  intensity = 1;
-		else if (intensity > .60) intensity = .80;
-		else if (intensity > .45) intensity = .60;
-		else if (intensity > .30) intensity = .45;
-		else if (intensity > .15) intensity = .30;
-		else intensity = 0;
+ 	virtual bool fragment(Vec3f bar, TGAColor& color) {
+ 		float intensity = varing_intensity * bar;
 		color = TGAColor(255, 255, 255) * intensity;
-		return false; // do not discard pixel
-	}
+ 		return false;
+ 	}
+// 	virtual bool fragment(Vec3f bar, TGAColor& color) {
+// 		float intensity = varing_intensity * bar; //interpolate intensity for current Pixel
+// 		if (intensity > .85)  intensity = 1;
+// 		else if (intensity > .60) intensity = .80;
+// 		else if (intensity > .45) intensity = .60;
+// 		else if (intensity > .30) intensity = .45;
+// 		else if (intensity > .15) intensity = .30;
+// 		else intensity = 0;
+// 		color = TGAColor(255, 255, 255) * intensity;
+// 		return false; // do not discard pixel
+// 	}
 };
 
+
+struct GouraudShader_Texture :public IShader {
+	Vec3f varing_intensity;
+	mat<2, 3, float> varing_uv;
+	virtual Vec4f vertex(int iface, int nthvert) {
+		//Ó³Éäuv×ø±ê
+		varing_uv.set_col(nthvert, model->uv(iface, nthvert));
+		varing_intensity[nthvert] = CLAMP(model->normal(iface, nthvert) * light_dir);
+
+		Vec4f gl_vertex = embed<4>(model->vert(iface, nthvert));
+
+		gl_vertex = ViewPort * Projection * ModelView * gl_vertex;
+		
+		return gl_vertex;
+	}
+	virtual bool fragment(Vec3f bar, TGAColor& color) {
+		float intensity = varing_intensity * bar;
+		Vec2f uv = varing_uv * bar;
+		color = model->diffuse(uv) * intensity;
+		return false;
+	}
+
+};
 
 
 
@@ -158,8 +181,8 @@ int main(int argc, char** argv) {
 	viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
 	projection(-1.f / (camera - center).norm());
 	light_dir.normalize();
-	//FlatShader shader;
-	GouraudShader shader;
+	GouraudShader_Texture shader;
+	//GouraudShader shader;
 	{ 
 
 
@@ -185,9 +208,9 @@ int main(int argc, char** argv) {
 			
 		}
 		image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-		image.write_tga_file("GouraudShader_Draw_AficaFace_withoutTexture.tga");
+		image.write_tga_file("GouraudShader_Draw_AficaFace_withTexture.tga");
 		zbuffer.flip_vertically();
-		zbuffer.write_tga_file("zbuffer_GouraudShader_Draw_AficaFace_withoutTexture.tga");
+		zbuffer.write_tga_file("zbuffer_GouraudShader_Draw_AficaFace_withTexture.tga");
 	}
 
 
