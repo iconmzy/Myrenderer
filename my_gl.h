@@ -18,7 +18,13 @@ struct IShader {
 	virtual ~IShader();
 
 	//= 0;是语法标记，表明是纯虚函数，必须override
+	// 顶点着色器完成的功能
+	//变换顶点
+	//准备数据给片段着色器用
 	virtual Vec4f vertex(int iface, int nthvert) = 0;
+	// 片段着色器完成的功能
+	//决定当前像素的颜色
+	//是否要丢弃当前像素
 	virtual bool fragment(Vec3f bar, TGAColor& color) = 0;
 };
 

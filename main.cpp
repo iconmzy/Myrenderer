@@ -61,6 +61,38 @@ struct FlatShader: public IShader{
 
 
 
+struct GouraudShader :public IShader {
+	Vec3f varing_intensity;
+
+	virtual Vec4f vertex(int iface, int nthvert) {
+		////读取第 iface 个面/三角形的第nthvert个顶点改成齐次坐标转化为齐次坐标系
+		Vec4f gl_vertex = embed<4>(model->vert(iface, nthvert));
+
+
+		//Gouraud Shader 只需计算顶点的最终屏幕坐标，不需要像 Flat Shader 那样存储投影后的3D坐标。
+		gl_vertex = ViewPort * Projection * ModelView * gl_vertex;
+		varing_intensity[nthvert] = CLAMP(model->normal(iface, nthvert) * light_dir);
+		return gl_vertex;
+	}
+// 	virtual bool fragment(Vec3f bar, TGAColor& color) {
+// 		float intensity = varing_intensity * bar;
+// 		color = TGAColor(255, 255, 255) * intensity;
+// 		return false;
+// 	}
+	virtual bool fragment(Vec3f bar, TGAColor& color) {
+		float intensity = varing_intensity * bar; //interpolate intensity for current Pixel
+		if (intensity > .85)  intensity = 1;
+		else if (intensity > .60) intensity = .80;
+		else if (intensity > .45) intensity = .60;
+		else if (intensity > .30) intensity = .45;
+		else if (intensity > .15) intensity = .30;
+		else intensity = 0;
+		color = TGAColor(255, 255, 255) * intensity;
+		return false; // do not discard pixel
+	}
+};
+
+
 
 
 
@@ -121,19 +153,17 @@ int main(int argc, char** argv) {
 	}
 	TGAImage image(width, height, TGAImage::RGB);
 	TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
+
 	viewtrans(camera, center, up);
 	viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
 	projection(-1.f / (camera - center).norm());
 	light_dir.normalize();
-	FlatShader shader;
+	//FlatShader shader;
+	GouraudShader shader;
 	{ 
 
 
-// 		std::cerr << ModelView << std::endl;
-// 		std::cerr << Projection << std::endl;
-// 		std::cerr << ViewPort << std::endl;
-// 		Matrix z = (ViewPort * Projection * ModelView);
-// 		std::cerr << z << std::endl;
+
 
 		
 		for (int i = 0; i < model->nfaces(); i++) {
@@ -142,7 +172,6 @@ int main(int argc, char** argv) {
 			Vec4f screen_coords[3];
 			
 			for (int j = 0; j < 3; j++) {
-				
 				
 				screen_coords[j] = shader.vertex(i,j);
 			}
@@ -156,9 +185,9 @@ int main(int argc, char** argv) {
 			
 		}
 		image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-		image.write_tga_file("flatshader_Draw_AficaFace_withoutTexture.tga");
+		image.write_tga_file("GouraudShader_Draw_AficaFace_withoutTexture.tga");
 		zbuffer.flip_vertically();
-		zbuffer.write_tga_file("flatshader_Draw_AficaFace_withoutTexture_zbuffer.tga");
+		zbuffer.write_tga_file("zbuffer_GouraudShader_Draw_AficaFace_withoutTexture.tga");
 	}
 
 
