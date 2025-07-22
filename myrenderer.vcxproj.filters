@@ -27,9 +27,6 @@
     <ClCompile Include="drawLine.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="main_mzy.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="drawobj.cpp">
       <Filter>源文件\drawobj</Filter>
     </ClCompile>

@@ -198,7 +198,7 @@ Vec3f barycentric_3d(Vec3f* tri, Vec3f P) {
 		s[i][2] = tri[0][i] - P[i];
 	}
 	//[u,v,1]和[AB,AC,PA]对应的x和y向量都垂直，所以叉乘
-	Vec3f u = s[0] ^ s[1];
+	Vec3f u = cross(s[0], s[1]);
 	//三点共线时，会导致u[2]为0，此时返回(-1,1,1)
 	if (std::abs(u[2]) > 1e-2)
 		//若1-u-v，u，v全为大于0的数，表示点在三角形内部

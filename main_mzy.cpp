@@ -56,14 +56,14 @@ Vec3f m2v(Matrix m) {
 }
 
 //4d ---> 3d w分量设置1表示点 坐标
-Matrix v2m(Vec3f v) {
-	Matrix m(4, 1);
-	m[0][0] = v.x;
-	m[1][0] = v.y;
-	m[2][0] = v.z;
-	m[3][0] = 1.f;
-	return m;
-}
+// Matrix v2m(Vec3f v) {
+// 	Matrix m(4, 1);
+// 	m[0][0] = v.x;
+// 	m[1][0] = v.y;
+// 	m[2][0] = v.z;
+// 	m[3][0] = 1.f;
+// 	return m;
+// }
 
 
 
@@ -263,7 +263,7 @@ int main_oldversion(int argc, char** argv) {
 
 		}
 		//定义法向量n，任意两边叉乘一定会得到垂直平面的向量，然后单位化
-		Vec3f n = (world_coords[2] - world_coords[0]) ^ (world_coords[1] - world_coords[0]);
+		Vec3f n = cross((world_coords[2] - world_coords[0]), (world_coords[1] - world_coords[0]));
 		n.normalize();
 		//简单计算的点乘代表漫反射
 		float intensity = n * light_dir;

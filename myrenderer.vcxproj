@@ -130,7 +130,6 @@
     <ClCompile Include="drawLine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="main_todolist.cpp" />
-    <ClCompile Include="main_mzy.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="perspectiveProjection.cpp" />
     <ClCompile Include="tgaimage.cpp" />
