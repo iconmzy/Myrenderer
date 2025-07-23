@@ -114,3 +114,53 @@ void triangle_box(Vec4f* tri, IShader& shader, TGAImage& image, TGAImage& zbuffe
 		}
 	}
 }
+
+
+
+void triangle(Vec4f* tri, IShader& shader, TGAImage& image, float* zbuffer) {
+	// 计算包围盒
+	Vec2f bboxmin(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+	Vec2f bboxmax(-std::numeric_limits<float>::max(), -std::numeric_limits<float>::max());
+	Vec2f clamp(image.get_width() - 1, image.get_height() - 1);
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 2; j++) {
+			// x/w y/w
+			bboxmin[j] = std::min(bboxmin[j], tri[i][j] / tri[i][3]);
+			bboxmax[j] = std::max(bboxmax[j], tri[i][j] / tri[i][3]);
+		}
+	}
+
+
+	Vec2i P;
+	TGAColor color;
+	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x += 1.0f) {
+		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y += 1.0f) {
+
+
+			//这里的proj是一个降维操作的模板
+			Vec3f bc_screen = barycentric(proj<2>(tri[0] / tri[0][3]), proj<2>(tri[1] / tri[1][3]),
+				proj<2>(tri[2] / tri[2][3]), P);
+
+			//对z和w的单独差值是为了透视校正？
+			float z = tri[0][2] * bc_screen.x + tri[1][2] * bc_screen.y + tri[2][2] * bc_screen.z;
+			float w = tri[0][3] * bc_screen.x + tri[1][3] * bc_screen.y + tri[2][3] * bc_screen.z;
+
+
+			// 透视校正 + 量化到 单通道灰度0~255 
+			int frag_depth = std::max(0, std::min(255, int(z / w + 0.5)));
+			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0 || zbuffer[P.x + P.y * image.get_width()]>frag_depth) continue;
+
+			bool discard = shader.fragment(bc_screen, color);
+			if (!discard) {
+				//这里color传参是&color，每个点会实时变化
+				image.set(P.x, P.y, color);
+				//根据深度渲染zbuffer的亮度，单通道灰度即可
+				zbuffer[P.x + P.y * image.get_width()] = frag_depth;
+			}
+
+
+
+		}
+	}
+}

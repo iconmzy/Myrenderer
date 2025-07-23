@@ -148,34 +148,6 @@
   <ItemGroup>
     <None Include="README.md" />
   </ItemGroup>
-  <ItemGroup>
-    <Object Include="obj\african_head.obj" />
-    <Object Include="obj\african_head_eye_inner.obj" />
-    <Object Include="obj\african_head_eye_outer.obj" />
-    <Object Include="obj\cube.obj" />
-    <Object Include="obj\diablo3_pose.obj" />
-    <Object Include="obj\femalehead.obj" />
-    <Object Include="obj\Mario.obj" />
-    <Object Include="obj\reconstructed_head.obj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="img\current_state.jpg" />
-    <Image Include="obj\african_head_diffuse.tga" />
-    <Image Include="obj\african_head_eye_inner_diffuse.tga" />
-    <Image Include="obj\african_head_eye_outer_diffuse.tga" />
-    <Image Include="obj\african_head_eye_outer_gloss.tga" />
-    <Image Include="obj\african_head_eye_outer_nm.tga" />
-    <Image Include="obj\african_head_eye_outer_spec.tga" />
-    <Image Include="obj\african_head_nm.tga" />
-    <Image Include="obj\african_head_nm_tangent.tga" />
-    <Image Include="obj\african_head_spec.tga" />
-    <Image Include="obj\diablo3_pose_diffuse.tga" />
-    <Image Include="obj\diablo3_pose_glow.tga" />
-    <Image Include="obj\diablo3_pose_nm.tga" />
-    <Image Include="obj\diablo3_pose_nm_tangent.tga" />
-    <Image Include="obj\diablo3_pose_spec.tga" />
-    <Image Include="obj\grid.tga" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
