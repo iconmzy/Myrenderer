@@ -150,5 +150,8 @@
     <Image Include="obj\grid.tga">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="img\current_state.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>

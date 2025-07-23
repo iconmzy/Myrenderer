@@ -4,7 +4,7 @@
 
 #include "model.h"
 
-Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_()
+Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_(), normalmap_(), specularmap_()
 {
 	std::ifstream in(filename, std::ifstream::in);
 	if (in.is_open()) {

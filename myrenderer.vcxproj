@@ -159,6 +159,7 @@
     <Object Include="obj\reconstructed_head.obj" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="img\current_state.jpg" />
     <Image Include="obj\african_head_diffuse.tga" />
     <Image Include="obj\african_head_eye_inner_diffuse.tga" />
     <Image Include="obj\african_head_eye_outer_diffuse.tga" />
