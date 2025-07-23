@@ -103,8 +103,9 @@ void triangle_box(Vec4f* tri, IShader& shader, TGAImage& image, TGAImage& zbuffe
 
 			bool discard = shader.fragment(bc_screen, color);
 			if (!discard){
+				//这里color传参是&color，每个点会实时变化
 				image.set(P.x, P.y, color);
-				//根据深度渲染zbuffer的亮度
+				//根据深度渲染zbuffer的亮度，单通道灰度即可
 				zbuffer.set(P.x, P.y, TGAColor(frag_depth));
 			}
 

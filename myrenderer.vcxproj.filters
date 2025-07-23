@@ -78,4 +78,77 @@
   <ItemGroup>
     <None Include="README.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Object Include="obj\african_head.obj">
+      <Filter>资源文件</Filter>
+    </Object>
+    <Object Include="obj\african_head_eye_inner.obj">
+      <Filter>资源文件</Filter>
+    </Object>
+    <Object Include="obj\african_head_eye_outer.obj">
+      <Filter>资源文件</Filter>
+    </Object>
+    <Object Include="obj\cube.obj">
+      <Filter>资源文件</Filter>
+    </Object>
+    <Object Include="obj\diablo3_pose.obj">
+      <Filter>资源文件</Filter>
+    </Object>
+    <Object Include="obj\femalehead.obj">
+      <Filter>资源文件</Filter>
+    </Object>
+    <Object Include="obj\Mario.obj">
+      <Filter>资源文件</Filter>
+    </Object>
+    <Object Include="obj\reconstructed_head.obj">
+      <Filter>资源文件</Filter>
+    </Object>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="obj\african_head_diffuse.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\african_head_eye_inner_diffuse.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\african_head_eye_outer_diffuse.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\african_head_eye_outer_gloss.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\african_head_eye_outer_nm.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\african_head_eye_outer_spec.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\african_head_nm.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\african_head_nm_tangent.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\african_head_spec.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\diablo3_pose_diffuse.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\diablo3_pose_glow.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\diablo3_pose_nm.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\diablo3_pose_nm_tangent.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\diablo3_pose_spec.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="obj\grid.tga">
+      <Filter>资源文件</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

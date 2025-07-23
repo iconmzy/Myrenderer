@@ -12,6 +12,7 @@ private:
 	std::vector<Vec2f> uv_;
 	TGAImage diffusemap_;
 	TGAImage normalmap_;
+	TGAImage specularmap_;
 	void load_texture(std::string filename, const char* suffix, TGAImage& img);
 public:
 	Model(const char* filename);
@@ -27,6 +28,9 @@ public:
 
 	//从法线贴图中读取逐像素法线（RGB编码）
 	Vec3f normal(Vec2f uv);
+
+	//
+	float specular(Vec2f uvf);
 	std::vector<int> face(int idx);
 	TGAColor diffuse(Vec2f uvf);
 };

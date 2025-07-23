@@ -1,6 +1,6 @@
 #include <vector>
 #include <iostream>
-
+#include <cmath>
 #include <limits>
 #include "tgaimage.h"
 #include "model.h"
@@ -16,6 +16,8 @@
 const int width = 600;
 const int height = 600;
 const int depth = 255;
+float  ambient = 8.;
+float spec_coefficient = 0.6;
 
 Model* model = NULL;
 //camera location
@@ -156,6 +158,59 @@ struct GouraudShader_Texture_DiffuseReflection :public IShader {
 };
 
 
+struct PhongShader :public IShader {
+
+	mat<2, 3, float> varing_uv;
+	mat<4, 4, float> uniform_M;//Projection*ModelView
+	mat<4, 4, float> uniform_MIT; //Projection*ModelView 的逆运算
+	virtual Vec4f vertex(int iface, int nthvert) {
+		//映射uv坐标
+		varing_uv.set_col(nthvert, model->uv(iface, nthvert));
+		//varing_intensity[nthvert] = CLAMP(model->normal(iface, nthvert) * light_dir);//光照随着法线变化,这里不再计算
+
+		Vec4f gl_vertex = embed<4>(model->vert(iface, nthvert));
+
+		gl_vertex = ViewPort * Projection * ModelView * gl_vertex;
+
+		return gl_vertex;
+	}
+	virtual bool fragment(Vec3f bar, TGAColor& color) {
+
+		Vec2f uv = varing_uv * bar;
+
+		//从法线贴图读取切线空间法线，变换到视图空间（使用逆转置矩阵保持垂直性）在齐次坐标下的归一化表示
+		Vec3f n = proj<3>(uniform_MIT * embed<4>(model->normal(uv))).normalize();
+
+		//// 将世界空间光照方向变换到视图空间得到 齐次坐标下的light的归一化
+		Vec3f l = proj<3>(uniform_M * embed<4>(light_dir)).normalize();
+
+
+		//还需要考虑到反射光向量
+		/*反射光向量推导
+		*  https://straywriter.github.io/2021/03/18/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9B%BE%E5%BD%A2%E5%AD%A6/Phong%E5%85%89%E7%85%A7%E6%A8%A1%E5%9E%8B/
+		*/
+		Vec3f r = (n * (n * l * 2.f) - l).normalize();
+
+		
+		//r.z分量表示反射光与视线的夹角余弦 ，若 < 0 ====》反射光方向与视线方向相反（无高光），形参2是从高光贴图中读取的值（0~255）
+		//对应games101中，通过幂运算可以控制高光的范围
+		float spec = pow(std::max(r.z, 0.f), model->specular(uv));
+		//基于Lambert余弦定律计算漫反射强度
+		//n·l  ====》 | n || l | cosθ（已归一化===》 | n |= | l |= 1）。
+		float diff = std::max(0.f, n * l);
+		TGAColor current_color = model->diffuse(uv);
+		color = current_color;
+		for (int i = 0; i < 3 ; ++i){
+			//第一项常数项表示环境光（Ambient）
+			//第二项漫反射强度*表示 当前从texture uv坐标系中读取到的颜色
+			//第三项高光*系数
+			color[i] = std::min<float>(ambient + current_color[i] * (diff + spec_coefficient * spec), 255);
+		}
+		return false;
+	}
+
+};
+
 
 
 
@@ -218,7 +273,7 @@ int main(int argc, char** argv) {
 	viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
 	projection(-1.f / (camera - center).norm());
 	light_dir.normalize();
-	GouraudShader_Texture_DiffuseReflection shader;
+	PhongShader shader;
 
 	//合并的模型视图投影矩阵（MVP），用于顶点变换
 	shader.uniform_M = Projection * ModelView;
@@ -228,9 +283,6 @@ int main(int argc, char** argv) {
 	{ 
 
 
-
-
-		
 		for (int i = 0; i < model->nfaces(); i++) {
 			std::vector<int> face = model->face(i);
 			
@@ -242,7 +294,7 @@ int main(int argc, char** argv) {
 			}
 			
 			
-			
+
 			//triangle_line(screen_coords[0], screen_coords[1], screen_coords[2], intensity[0], intensity[1], intensity[2], image,zbuffer);
 			
 			triangle_box(screen_coords,shader, image,zbuffer);
@@ -250,9 +302,9 @@ int main(int argc, char** argv) {
 			
 		}
 		image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-		image.write_tga_file("GouraudShader_AficaFace_withDiffuseReflectionTexture.tga");
+		image.write_tga_file("PhongShader_AficaFace_withTexture.tga");
 		zbuffer.flip_vertically();
-		zbuffer.write_tga_file("zbuffer_GouraudShader_AficaFace_withDiffuseReflectionTexture.tga");
+		zbuffer.write_tga_file("zbuffer_PhongShader_AficaFace_withTexture.tga");
 	}
 
 

@@ -51,6 +51,8 @@ Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_(), diffus
 	std::cout << "loading texture" << std::endl;
 	load_texture(filename, "_diffuse.tga", diffusemap_);
 	load_texture(filename, "_nm.tga", normalmap_);
+	//帶刀疤的高光貼圖texture 
+	load_texture(filename, "_spec.tga", specularmap_);
 }
 
 Model::~Model() {}
@@ -106,4 +108,14 @@ Vec3f Model::normal(Vec2f uvf) {
 	for (int i = 0; i < 3; i++)
 		res[2 - i] = (float)c[i] / 255.f * 2.f - 1.f;
 	return res;
+}
+
+float Model::specular(Vec2f uvf) {
+
+	//將紋理坐標（0-1範圍）轉換為紋理圖像的具體像素坐標（整數）
+	Vec2i uv(uvf[0] * specularmap_.get_width(), uvf[1] * specularmap_.get_height());
+
+
+	//get返回一个rgb值，任选一个通道，然后转换成float
+	return specularmap_.get(uv[0], uv[1])[0] / 1.f;
 }
