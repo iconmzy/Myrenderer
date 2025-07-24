@@ -23,6 +23,7 @@ float  shadowlimit_ambient = 3.0;
 float shadowfactor = 0.8;
 float spec_coefficient = 0.6;
 
+std::vector<Model*> models;
 Model* model = NULL;
 float* shadowbuffer = NULL;
 float* zbuffer = NULL;
@@ -393,21 +394,21 @@ Vec4f world2screen(Vec3f v) {
 
 
 int main(int argc, char** argv) {
-	if (2 == argc) {
-		model = new Model(argv[1]);
-	}
-	else {
-		model = new Model("obj/african_head.obj");
-		
-		//model = new Model("obj/diablo3_pose.obj");
-		
-	}
+// 	if (2 == argc) {
+// 		model = new Model(argv[1]);
+// 	}
+// 	else {
+// 		model = new Model("obj/african_head.obj");
+// 		
+// 		//model = new Model("obj/diablo3_pose.obj");
+// 		
+// 	}
 
 
 	//try to add eye balls  with multi obj file
-// 	std::vector<Model*> models;
-// 	models.push_back(new Model("obj/african_head.obj"));
-// 	models.push_back(new Model("obj/african_head_eye_inner.obj"));
+ 	
+	models.push_back(new Model("obj/mix/african_head.obj"));
+	//models.push_back(new Model("obj/mix/african_head_eye_inner.obj"));
 
 
 
@@ -420,7 +421,7 @@ int main(int argc, char** argv) {
 
 	light_dir.normalize();
 
-	
+
 	
 
 
@@ -434,16 +435,20 @@ int main(int argc, char** argv) {
 		//// 这样透视投影传递0参数等价于正交投影矩阵（平行光）
 		projection(0);
 		DepthShader shadowshader;
-		Vec4f screen_coords[3];
-		for (int i = 0; i < model->nfaces(); i++) {
-			for (int j = 0; j < 3; j++) {
-				screen_coords[j] = shadowshader.vertex(i, j);
+
+		for (Model* m : models) {
+			model = m; // 设置当前模型为全局变量
+			Vec4f screen_coords[3];
+			for (int i = 0; i < m->nfaces(); i++) {
+				for (int j = 0; j < 3; j++) {
+					screen_coords[j] = shadowshader.vertex(i, j);
+				}
+				triangle(screen_coords, shadowshader, shadow_depth, shadowbuffer);
 			}
-			triangle(screen_coords, shadowshader, shadow_depth, shadowbuffer);
+
 		}
 		shadow_depth.flip_vertically(); // to place the origin in the bottom left corner of the image
 		shadow_depth.write_tga_file("Nigger_shadow_depth_ADDeye.tga");
-
 	}
 	
 	//基于shadows的mvp矩阵
@@ -466,29 +471,40 @@ int main(int argc, char** argv) {
 		//shader.uniform_MIT = shader.uniform_M.invert_transpose();
 		//GouraudShader shader;
 
+		for (int i = width * height; --i; ) {
+            zbuffer[i] = -std::numeric_limits<float>::max();
+        }
 
-		for (int i = 0; i < model->nfaces(); i++) {
-			std::vector<int> face = model->face(i);
-			
+		for (Model * m : models) {
+			model = m; // 设置当前模型为全局变量
 			Vec4f screen_coords[3];
-			
-			for (int j = 0; j < 3; j++) {
-				
-				screen_coords[j] = shader.vertex(i,j);
+			for (int i = 0; i < m->nfaces(); i++) {
+				std::vector<int> face = m->face(i);
+
+
+
+				for (int j = 0; j < 3; j++) {
+
+					screen_coords[j] = shader.vertex(i, j);
+				}
+
+				//triangle_line(screen_coords[0], screen_coords[1], screen_coords[2], intensity[0], intensity[1], intensity[2], image,zbuffer);
+				triangle(screen_coords, shader, frame, zbuffer);
+
 			}
-			
-			//triangle_line(screen_coords[0], screen_coords[1], screen_coords[2], intensity[0], intensity[1], intensity[2], image,zbuffer);
-			triangle(screen_coords,shader, frame,zbuffer);
-			
+			frame.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+			frame.write_tga_file("ADDeye_Nigger_withShadw.tga");
+
 		}
-		frame.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-		frame.write_tga_file("ADDeye_Nigger_withShadw.tga");
+
 
 	}
 
 
+	for (Model* model : models) {
+		delete model;
+	}
 
-	delete model;
 	
 	return 0;
 }
