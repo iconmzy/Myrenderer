@@ -362,3 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /history_tga_file
+/Gebulin_shadow_depth.tga
+/Nigger_shadow_depth.tga
+/PhongShader_Gebulin_withShadw.tga
+/PhongShader_Nigger_withShadw.tga
