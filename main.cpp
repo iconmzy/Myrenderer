@@ -18,7 +18,7 @@ const int height = 800;
 //const int depth = 255;
 
 //一些常数系数项
-float  ambient = 26.;
+float  ambient = 18.;
 float  shadowlimit_ambient = 3.0;
 float shadowfactor = 0.8;
 float spec_coefficient = 0.6;
@@ -29,8 +29,8 @@ float* zbuffer = NULL;
 
 
 //camera location
-Vec3f light_dir(1, 1, -2);
-Vec3f       camera(1, 1, 4);
+Vec3f light_dir(1, 1, 1);
+Vec3f       camera(1, 1, 9);
 Vec3f    center(0, 0, 0);
 Vec3f        up(0, 1, 0);
 
@@ -263,17 +263,19 @@ struct PhongShaderWithShadow :public IShader {
 
 
 		//系数？
-		float shadow = ambient*0.2 + shadowfactor * (shadowbuffer[idx] < sb_p[2]); // magic coeff to avoid z-fighting
+		//float shadow = ambient*0.2 + shadowfactor * (shadowbuffer[idx] < sb_p[2]); // magic coeff to avoid z-fighting
 		// 改进的阴影计算部分可以改为：
-// 		float shadow = 1.0;
-// 		float bias = 0.005; // 适当的偏移值
-// 		for (int x = -1; x <= 1; x++) {
-// 			for (int y = -1; y <= 1; y++) {
-// 				float pcfDepth = shadowbuffer[idx + x + y * width];
-// 				shadow += (sb_p[2] - bias > pcfDepth) ? shadowfactor : 0.0;
-// 			}
-// 		}
-// 		shadow /= 9.0; // 3x3 PCF采样
+		float shadow = 1.0;
+		float bias = 0.005; // 适当的偏移值
+
+		//周围 3×3 邻域 内，共采样 9 个点（x 和 y 从 -1 到 1）
+		for (int x = -1; x <= 1; x++) {
+			for (int y = -1; y <= 1; y++) {
+				float pcfDepth = shadowbuffer[idx + x + y * width];
+				shadow += (sb_p[2] - bias > pcfDepth) ? shadowfactor : 0.0;
+			}
+		}
+		shadow /= 9.0; // 3x3 PCF采样后再除以9
 		
 
 
@@ -395,9 +397,9 @@ int main(int argc, char** argv) {
 		model = new Model(argv[1]);
 	}
 	else {
-		//model = new Model("obj/african_head.obj");
+		model = new Model("obj/african_head.obj");
 		
-		model = new Model("obj/diablo3_pose.obj");
+		//model = new Model("obj/diablo3_pose.obj");
 		
 	}
 
@@ -433,7 +435,7 @@ int main(int argc, char** argv) {
 			triangle(screen_coords, shadowshader, shadow_depth, shadowbuffer);
 		}
 		shadow_depth.flip_vertically(); // to place the origin in the bottom left corner of the image
-		shadow_depth.write_tga_file("Gebulin_shadow_depth.tga");
+		shadow_depth.write_tga_file("Nigger_shadow_depth.tga");
 
 	}
 	
@@ -473,7 +475,7 @@ int main(int argc, char** argv) {
 			
 		}
 		frame.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-		frame.write_tga_file("PhongShader_Gebulin_withShadw.tga");
+		frame.write_tga_file("PhongShader_Nigger_withShadw.tga");
 
 	}
 
