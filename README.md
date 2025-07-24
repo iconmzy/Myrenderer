@@ -9,4 +9,6 @@
 
 # current state
 ![image](img/current_state.jpg)
-![image](img/current_state1.jgp)
+
+# another example
+![image](img/current_state1.jpg)
