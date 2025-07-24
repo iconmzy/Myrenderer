@@ -11,4 +11,4 @@
 ![image](img/current_state.jpg)
 
 # another example
-![image](img/current_state1.jpg)
+![image](img/example.jpg)

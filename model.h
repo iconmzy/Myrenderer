@@ -4,16 +4,22 @@
 #include <string>
 #include "geometry.h"
 #include "tgaimage.h"
+#include <unordered_map>
 class Model {
 private:
+	enum TextureType { DIFFUSE, NORMAL, SPECULAR}; // 用枚举的形式方便扩展texture类型
 	std::vector<Vec3f> verts_;
 	std::vector<std::vector<Vec3i>> faces_; //Vec3i means vertex/uv/normal
 	std::vector<Vec3f> norms_;
 	std::vector<Vec2f> uv_;
-	TGAImage diffusemap_;
-	TGAImage normalmap_;
-	TGAImage specularmap_;
-	void load_texture(std::string filename, const char* suffix, TGAImage& img);
+
+
+	std::unordered_map<TextureType, TGAImage> textures_; // 纹理集合,替代下面的单项
+	//TGAImage diffusemap_;
+	//TGAImage normalmap_;
+	//TGAImage specularmap_;
+	//void load_texture(std::string filename, const char* suffix, TGAImage& img);
+	void load_texture(std::string filename, TextureType suffix);
 public:
 	Model(const char* filename);
 	~Model();

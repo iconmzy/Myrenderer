@@ -4,7 +4,7 @@
 
 #include "model.h"
 
-Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_(), diffusemap_(), normalmap_(), specularmap_()
+Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_()
 {
 	std::ifstream in(filename, std::ifstream::in);
 	if (in.is_open()) {
@@ -49,10 +49,10 @@ Model::Model(const char* filename) : verts_(), faces_(), norms_(), uv_(), diffus
 		uv_.size() << " vn# " << norms_.size() << std::endl;
 	//在构造函数中就把texture加载了
 	std::cout << "loading texture" << std::endl;
-	load_texture(filename, "_diffuse.tga", diffusemap_);
-	load_texture(filename, "_nm.tga", normalmap_);
+	load_texture(filename, DIFFUSE);
+	load_texture(filename, NORMAL);
 	//帶刀疤的高光貼圖texture 
-	load_texture(filename, "_spec.tga", specularmap_);
+	load_texture(filename, SPECULAR);
 }
 
 Model::~Model() {}
@@ -71,20 +71,27 @@ std::vector<int> Model::face(int idx) {
 	return face;
 }
 
-void Model::load_texture(std::string filename, const char* suffix, TGAImage& img) {
+void Model::load_texture(std::string filename, TextureType type) {
 	std::string textfile(filename);
+	std::string suffix;
 	size_t dot = textfile.find_last_of(".");
 	if (dot != std::string::npos) {
-		textfile = textfile.substr(0, dot) + std::string(suffix);
+		switch (type) {
+		case DIFFUSE:    suffix = "_diffuse.tga"; break;
+		case NORMAL:     suffix = "_nm.tga";      break;
+		case SPECULAR:   suffix = "_spec.tga";    break;
+
+		}
+		textfile = textfile.substr(0, dot) + (suffix);
 		std::cout << "textfile file" << textfile << "loading " <<
-			(img.read_tga_file(textfile.c_str()) ? "ok" : "failed") << std::endl;
-		img.flip_vertically();
+			(textures_[type].read_tga_file(textfile.c_str()) ? "ok" : "failed") << std::endl;
+		textures_[type].flip_vertically();
 	}
 }
 
 TGAColor Model::diffuse(Vec2f uvf) {
-	Vec2i uv(uvf[0] * diffusemap_.get_width(), uvf[1] * diffusemap_.get_height());
-	return diffusemap_.get(uv[0], uv[1]);
+	Vec2i uv(uvf[0] * textures_[DIFFUSE].get_width(), uvf[1] * textures_[DIFFUSE].get_height());
+	return textures_[DIFFUSE].get(uv[0], uv[1]);
 }
 
 Vec3f Model::vert(int iface, int nthvert) {
@@ -101,8 +108,8 @@ Vec3f Model::normal(int iface, int nthvert) {
 }
 
 Vec3f Model::normal(Vec2f uvf) {
-	Vec2i uv(uvf[0] * normalmap_.get_width(), uvf[1] * normalmap_.get_height());
-	TGAColor c = normalmap_.get(uv[0], uv[1]);
+	Vec2i uv(uvf[0] * textures_[NORMAL].get_width(), uvf[1] * textures_[NORMAL].get_height());
+	TGAColor c = textures_[NORMAL].get(uv[0], uv[1]);
 	Vec3f res;
 	// notice TGAColor is bgra, and in byte
 	for (int i = 0; i < 3; i++)
@@ -113,9 +120,9 @@ Vec3f Model::normal(Vec2f uvf) {
 float Model::specular(Vec2f uvf) {
 
 	//將紋理坐標（0-1範圍）轉換為紋理圖像的具體像素坐標（整數）
-	Vec2i uv(uvf[0] * specularmap_.get_width(), uvf[1] * specularmap_.get_height());
+	Vec2i uv(uvf[0] * textures_[SPECULAR].get_width(), uvf[1] * textures_[SPECULAR].get_height());
 
 
 	//get返回一个rgb值，任选一个通道，然后转换成float
-	return specularmap_.get(uv[0], uv[1])[0] / 1.f;
+	return textures_[SPECULAR].get(uv[0], uv[1])[0] / 1.f;
 }

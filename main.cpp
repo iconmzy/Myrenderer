@@ -404,6 +404,13 @@ int main(int argc, char** argv) {
 	}
 
 
+	//try to add eye balls  with multi obj file
+// 	std::vector<Model*> models;
+// 	models.push_back(new Model("obj/african_head.obj"));
+// 	models.push_back(new Model("obj/african_head_eye_inner.obj"));
+
+
+
 	zbuffer = new float[width * height];
 	shadowbuffer = new float[width * height];
 	//这两都先初始化最小值
@@ -435,7 +442,7 @@ int main(int argc, char** argv) {
 			triangle(screen_coords, shadowshader, shadow_depth, shadowbuffer);
 		}
 		shadow_depth.flip_vertically(); // to place the origin in the bottom left corner of the image
-		shadow_depth.write_tga_file("Nigger_shadow_depth.tga");
+		shadow_depth.write_tga_file("Nigger_shadow_depth_ADDeye.tga");
 
 	}
 	
@@ -475,7 +482,7 @@ int main(int argc, char** argv) {
 			
 		}
 		frame.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-		frame.write_tga_file("PhongShader_Nigger_withShadw.tga");
+		frame.write_tga_file("ADDeye_Nigger_withShadw.tga");
 
 	}
 
